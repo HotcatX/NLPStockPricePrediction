@@ -1,11 +1,7 @@
 import requests
 import pandas as pd
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
-
-API_KEY = os.getenv("ALPHA_API_KEY")
+API_KEY = "9SMJWT4DNUDBHM80"
 
 url = "https://www.alphavantage.co/query"
 params = {
