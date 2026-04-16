@@ -6,7 +6,7 @@ API_KEY = "9SMJWT4DNUDBHM80"
 url = "https://www.alphavantage.co/query"
 params = {
     "function": "TIME_SERIES_DAILY",
-    "symbol": "SPY",
+    "symbol": "QQQ",
     "apikey": API_KEY
 }
 
