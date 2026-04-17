@@ -27,4 +27,4 @@ df = df.sort_index()
 df.columns = ["open", "high", "low", "close", "volume"]
 df = df.astype(float)
 
-print(df.head())
+print(df.tail())
