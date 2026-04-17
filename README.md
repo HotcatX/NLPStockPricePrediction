@@ -1,28 +1,28 @@
-# 项目方案：金融市场情绪与行情关联分析系统
+# Project Proposal: Financial Market Sentiment and Price Correlation Analysis System
 
-## 1. 核心架构
-**历史回测（大数据基石） + 端到端实时分析（Demo 展示）**
-*   **规模化 (Scalability)**：利用 Kaggle 历史新闻与行情数据集（1GB+）模拟大规模回测，验证策略有效性。
-*   **实时性 (Simulated Real-time)**：利用 Alpha Vantage API 动态拉取当日数据，演示系统在流水线中的数据流转。
+## 1. Core Architecture
+**Historical Backtesting (Big Data Foundation) + End-to-End Real-time Analysis (Demo Showcase)**
+*   **Scalability**: Leverage historical news and market datasets from Kaggle (1GB+) to simulate large-scale backtesting and validate strategy effectiveness.
+*   **Real-time Analysis**: Utilize Alpha Vantage API to dynamically pull daily data, demonstrating the live data flow within the pipeline.
 
-## 2. 技术栈 (Tech Stack)
-*   **数据采集 (Ingestion)**：Alpha Vantage API (News & Prices)
-*   **SQL 数据库**：PostgreSQL (存储结构化指标、关联后的价格与情绪分)
-*   **NoSQL 数据库**：MongoDB (作为数据湖，存储原始、非结构化的新闻 JSON 数据)
-*   **大数据处理**：PySpark (用于处理数百万条历史数据，进行分布式的词云分析和情感计算)
-*   **前端展示**：Flask / FastAPI (轻量级看板)
+## 2. Tech Stack
+*   **Data Ingestion**: Alpha Vantage API (News & Prices)
+*   **SQL Database**: PostgreSQL (Stores structured indicators, correlated price and sentiment scores)
+*   **NoSQL Database**: MongoDB (Acts as a data lake, storing raw, unstructured news JSON data)
+*   **Big Data Processing**: PySpark (Used for processing millions of historical records, performing distributed word cloud analysis and sentiment computation)
+*   **Frontend Showcase**: Flask / FastAPI (Lightweight dashboard)
 
-## 3. 数据流水线 (Pipeline)
-1.  **数据入湖 (Stage 1)**：Alpha Vantage 拉取的原始 JSON 数据直接持久化至 **MongoDB**，保证数据完整性且方便后续扩展字段。
-2.  **ETL 与结构化 (Stage 2)**：将清洗后的股票指标、股票代号、日期及格式化后的行情数据写入 **PostgreSQL**。
-3.  **分布式分析 (Stage 3)**：**PySpark** 读取 MongoDB 里的非结构化文本与 PostgreSQL 里的行情数据：
-    *   **NLP 处理**：计算历史百万级新闻的情绪得分、提取热点词。
-    *   **聚合分析**：计算情绪指标与股价波动率的相关性。
-4.  **展示层 (Stage 4)**：Flask 服务从数据库提取聚合后的结果，通过 Dashboard 展示：
-    *   情绪趋势 vs 股价涨跌图
-    *   行业热点词云
-    *   股票情绪对比排名
+## 3. Data Pipeline
+1.  **Data Lake Ingestion (Stage 1)**: Raw JSON data pulled from Alpha Vantage is directly persisted into **MongoDB** to ensure data integrity and facilitate future field extensions.
+2.  **ETL & Structuring (Stage 2)**: Cleaned stock indicators, tickers, dates, and formatted market data are written into **PostgreSQL**.
+3.  **Distributed Analysis (Stage 3)**: **PySpark** reads unstructured text from MongoDB and market data from PostgreSQL:
+    *   **NLP Processing**: Computes sentiment scores and extracts hot keywords from millions of historical news entries.
+    *   **Aggregation**: Calculates the correlation between sentiment indicators and stock price volatility.
+4.  **Showcase Layer (Stage 4)**: The Flask service extracts aggregated results from the database and visualizes them via a Dashboard:
+    *   Sentiment Trends vs. Price Fluctuations
+    *   Industry Keyword Clouds
+    *   Stock Sentiment Comparison Rankings
 
-## 4. 方案亮点 (Highlights)
-*   **Big Data 必要性**：为了处理数百万条历史新闻的全文分析、词云提取 and 情感计算，我们引入了 PySpark 进行分布式处理，解决了单机处理大规模文本数据的性能瓶颈。
-*   **混合存储架构**：结合了 SQL 的严谨关联性（用于金融指标）和 NoSQL 的灵活 schema（用于新闻文本），体现了对不同数据形态的针对性处理。
+## 4. Project Highlights
+*   **Necessity of Big Data**: To handle the full-text analysis, word cloud extraction, and sentiment computation of millions of historical news entries, we introduced PySpark for distributed processing, overcoming the performance bottlenecks of single-machine processing.
+*   **Hybrid Storage Architecture**: Combines the rigorous relational capabilities of SQL (for financial metrics) with the flexible schema of NoSQL (for news text), demonstrating targeted handling of different data formats.
