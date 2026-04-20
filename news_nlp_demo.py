@@ -91,8 +91,11 @@ STOPWORDS = {
 }
 
 
+from dotenv import load_dotenv
+load_dotenv()
+
 def load_api_key() -> str:
-    return os.getenv("ALPHAVANTAGE_API_KEY", "AHVAXANX4RZ305AS")
+    return os.getenv("ALPHA_API_KEY", "AHVAXANX4RZ305AS")
 
 
 def fetch_news_for_ticker(api_key: str, ticker: str, limit: int = 10) -> list[dict]:
@@ -139,7 +142,7 @@ def main() -> None:
     api_key = load_api_key()
     output_dir = Path("/Users/cat/Documents/作业/5400/output")
     output_dir.mkdir(exist_ok=True)
-    today_utc = dt.datetime.now(dt.UTC).date()
+    today_utc = dt.datetime.now(dt.timezone.utc).date()
 
     rows: list[dict] = []
     for index, ticker in enumerate(DEFAULT_TICKERS):

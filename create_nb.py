@@ -109,12 +109,9 @@ except Exception as e:
     print("❌ Failed to retrieve password:", e)
     aurora_password = None"""))
 
-cells.append(nbf.v4.new_code_cell("""# 6.3 Placeholder: Insert dataframe into Aurora MySQL via PyMySQL / SQLAlchemy
+cells.append(nbf.v4.new_code_cell("""# 6.3 Execute dataframe insertion into Aurora MySQL via PyMySQL / SQLAlchemy
 print(\"\\n--- Aurora MySQL Connection Setup ---\")
-print(\"Status: Awaiting AWS Security Group modification to allow outbound local IP on port 3306.\")
-print(\"Once firewall is opened, the following block handles the bulk push:\\n\")
 
-'''
 if aurora_password:
     import sqlalchemy
     
@@ -129,8 +126,56 @@ if aurora_password:
     
     # Execute bulk load from Pandas directly to AWS Aurora SQL 'stock_prices' table
     df.to_sql(name='stock_prices', con=engine, if_exists='append', index=True, index_label='date')
-    print(\"Data successfully pushed to AWS Aurora MySQL.\")
-'''"""))
+    print(\"✅ Data successfully pushed to AWS Aurora MySQL.\")"""))
+
+cells.append(nbf.v4.new_markdown_cell("""## 7. Natural Language Processing (NLP) & Sentiment Analysis
+In this module, we collect global financial news via API, apply tokenizer functions to extract big data keywords, and aggregate positive/negative market sentiments to draw immediate insights."""))
+
+cells.append(nbf.v4.new_code_cell("""import re
+from collections import Counter
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Fetch news data
+news_url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={TICKER}&apikey={ALPHA_VANTAGE_API}&limit=50"
+news_response = requests.get(news_url).json()
+
+if "feed" in news_response:
+    feed = news_response["feed"]
+    print(f"✅ Picked up {len(feed)} latest financial articles regarding {TICKER}.")
+    
+    # 1. Sentiment Distribution Analysis
+    sentiments = [item.get("overall_sentiment_label") for item in feed]
+    sentiment_counts = Counter(sentiments)
+    
+    plt.figure(figsize=(8, 4))
+    sns.barplot(x=list(sentiment_counts.keys()), y=list(sentiment_counts.values()), palette="viridis", hue=list(sentiment_counts.keys()), legend=False)
+    plt.title(f"Market Sentiment Distribution for {TICKER}")
+    plt.ylabel("Article Count")
+    plt.show()
+    
+    # 2. NLP Keyword Extraction & Word Frequency
+    combined_text = " ".join([item.get("title", "") + " " + item.get("summary", "") for item in feed]).lower()
+    cleaned_text = re.sub(r'[^a-z\s]', '', combined_text)
+    
+    stopwords = {"a", "and", "the", "to", "of", "in", "for", "is", "on", "with", "as", "at", "it", "by", "from", "that"}
+    words = [w for w in cleaned_text.split() if w not in stopwords and len(w) > 3]
+    top_words = Counter(words).most_common(15)
+    
+    print("\\n🔥 Top 15 Buzzwords in the News:")
+    for word, count in top_words:
+        print(f" - {word}: {count}")
+    
+    # 3. Keyword Bar Chart
+    words_list, counts_list = zip(*top_words)
+    plt.figure(figsize=(10, 5))
+    sns.barplot(x=list(counts_list), y=list(words_list), palette="magma", hue=list(words_list), legend=False)
+    plt.title(f"Top Financial NLP Keywords associated with {TICKER}")
+    plt.xlabel("Frequency Count")
+    plt.show()
+else:
+    print("❌ Failed to fetch news data.")
+"""))
 
 nb['cells'] = cells
 with open('Project_Analysis.ipynb', 'w') as f:
