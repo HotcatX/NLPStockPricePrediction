@@ -7,7 +7,7 @@
 
 ## 2. 云端技术栈 (Cloud Tech Stack)
 *   **数据入湖 (NoSQL)**：**AWS DynamoDB** (作为云端数据湖，存储原始新闻 JSON)。
-*   **结构化存储 (SQL)**：**AWS Aurora (PostgreSQL compatible)** (存储清洗后的金融指标)。
+*   **结构化存储 (SQL)**：**AWS Aurora (MySQL compatible)** (存储清洗后的金融指标)。
 *   **云分布式处理**：**PySpark** (连接云端数据源进行分布式大规模情感计算)。
 *   //**云存储**：**AWS S3 / Google Cloud Storage** (存放 Kaggle 历史大数据集，供 Spark 调用)。 (optional)
 
@@ -15,7 +15,7 @@
 1.  **数据采集**：部署在云端的 Python 脚本定时触发，拉取 Alpha Vantage 数据。
 2.  **云端持久化**：
     *   原始文本流入 **AWS DynamoDB**。
-    *   行情指标清洗后流入 **AWS Aurora**。
+    *   行情指标清洗后流入 **AWS Aurora (MySQL)**。
 3.  **云端分析 (Process)**：PySpark 从云存储读取百万级历史数据，与实时情绪进行交叉比对。
 4.  **展示层 (Service)**：通过云服务器开放公网 URL，实时展示 Dashboard 看板。
 
