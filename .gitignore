@@ -10,4 +10,5 @@ env/
 venv/
 ENV/
 服务器情况说明_私密.md
-
+massive_mock_dataset_*.csv
+*.parquet
