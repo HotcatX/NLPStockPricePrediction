@@ -46,11 +46,26 @@ def get_db_connection():
     )
     return connection
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=300)
 def fetch_nlp_data():
-    news_url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={TICKER}&apikey={ALPHA_VANTAGE_API}&limit=100"
-    response = requests.get(news_url).json()
-    return response.get("feed", [])
+    """Retrieve raw unstructured news JSON directly from AWS DynamoDB Data Lake"""
+    try:
+        session = boto3.Session(aws_access_key_id=AWS_ACCESS_KEY_ID, aws_secret_access_key=AWS_SECRET_ACCESS_KEY, region_name=REGION)
+        dynamodb = session.resource('dynamodb')
+        table = dynamodb.Table('APAN5200')
+        
+        response = table.scan(Limit=800)
+        items = response.get('Items', [])
+        
+        feed = []
+        for i in items:
+            raw_str = i.get('RawData')
+            if raw_str:
+                feed.append(json.loads(raw_str))
+        return feed
+    except Exception as e:
+        st.error(f"Failed to pull from DynamoDB Data Lake: {e}")
+        return []
 
 # ================= SYSTEM HEADER =================
 st.title("📈 APAN5400 Final Project: End-to-End Market AI Dashboard")
