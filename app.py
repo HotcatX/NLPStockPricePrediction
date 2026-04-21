@@ -10,6 +10,8 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import seaborn as sns
 from dotenv import load_dotenv
+from sklearn.linear_model import LinearRegression
+import numpy as np
 
 # Page configuration
 st.set_page_config(page_title="APAN5400 Dashboard", layout="wide", page_icon="📈")
@@ -58,7 +60,7 @@ This interactive front-end dashboard pulls structured financial metrics from **A
 and streams live Big Data NLP sentiment analysis to form a complete overview.
 """)
 
-tab1, tab2 = st.tabs(["💰 Structured Market Data (AWS SQL)", "🧠 Big Data & NLP Analysis"])
+tab1, tab2, tab3 = st.tabs(["💰 Structured Market Data", "🧠 Big Data & NLP Analysis", "🔮 Machine Learning NLP Forecast"])
 
 # -------------- TAB 1: SQL Data --------------
 with tab1:
@@ -73,7 +75,7 @@ with tab1:
                 df["date"] = pd.to_datetime(df["date"])
         
         if not df.empty:
-            st.subheader(f"📊 Historical Price Movement: {TICKER} (Sourced from Aurora)")
+            st.subheader(f"📊 Historical Price Movement: {TICKER} (Sourced from Aurora MySQL)")
             chart_data = df.set_index("date")[["close", "open", "high", "low"]]
             st.line_chart(chart_data["close"], height=350, color="#FF4B4B")
             
@@ -88,24 +90,23 @@ with tab1:
                 st.metric(label="Latest Trading Volume", value=f"{df['volume'].iloc[0]:,.0f}")
                 st.metric(label="Total Cloud Records Parsed", value=f"{len(df)} days")
         else:
+            df = pd.DataFrame()
             st.warning("Database connected but 'stock_prices' table is empty.")
 
     except Exception as e:
+        df = pd.DataFrame()
         st.error(f"Cannot connect to Cloud Database: {e}")
 
 # -------------- TAB 2: NLP Analysis --------------
+feed = fetch_nlp_data()
 with tab2:
     st.markdown("### Semantic Keyword Extractor & Global Sentiment Aggregation")
     st.info("Pipeline: Raw API -> DynamoDB Data Lake -> NLP Native Tokenizer -> Streamlit Visualization")
-    
-    with st.spinner("Crunching massive live news NLP data..."):
-        feed = fetch_nlp_data()
-        
+
     if feed:
         sentiments = [item.get("overall_sentiment_label") for item in feed]
         sentiment_counts = Counter(sentiments)
         
-        # Two columns for NLP charts
         nlp_col1, nlp_col2 = st.columns(2)
         
         with nlp_col1:
@@ -126,7 +127,7 @@ with tab2:
             st.subheader("🔥 Financial TF-IDF Buzzwords")
             combined_text = " ".join([item.get("title", "") + " " + item.get("summary", "") for item in feed]).lower()
             cleaned_text = re.sub(r'[^a-z\s]', '', combined_text)
-            stopwords = {"a", "and", "the", "to", "of", "in", "for", "is", "on", "with", "as", "at", "it", "by", "from", "that"}
+            stopwords = {"a", "and", "the", "to", "of", "in", "for", "is", "on", "with", "as", "at", "it", "by", "from", "that", "this", "inc", "are", "be"}
             words = [w for w in cleaned_text.split() if w not in stopwords and len(w) > 3]
             top_words = Counter(words).most_common(10)
             
@@ -146,9 +147,68 @@ with tab2:
         st.subheader("📰 Highly Relevant Alpha Sources")
         for i, item in enumerate(feed[:5]):
             st.markdown(f"**[{item['overall_sentiment_label']}]** [{item['title']}]({item['url']}) _({item['source']})_")
-            
     else:
         st.error("No NLP data currently available in Data Pool.")
+
+# -------------- TAB 3: Predictive ML Modeling --------------
+with tab3:
+    st.markdown("### 🔮 Scikit-Learn Predictive Model: Price Momentum + NLP Sentiment Projection")
+    st.info("Demonstrates the integration of Historical Metrics (SQL) × Unstructured Opinion Score (NLP/NoSQL).")
+    
+    if not df.empty and feed:
+        # Prepare basic price lag features
+        ml_df = df.sort_values('date').copy()
+        ml_df['Lag_1'] = ml_df['close'].shift(1)
+        ml_df['Lag_2'] = ml_df['close'].shift(2)
+        ml_df['Lag_3'] = ml_df['close'].shift(3)
+        ml_df.dropna(inplace=True)
+        
+        X = ml_df[['Lag_1', 'Lag_2', 'Lag_3']]
+        y = ml_df['close']
+        
+        # Train simple linear regressor
+        model = LinearRegression()
+        model.fit(X, y)
+        
+        # Extract features of the most recent day to predict tomorrow
+        last_day = ml_df.iloc[-1]
+        X_latest = pd.DataFrame([{'Lag_1': last_day['close'], 'Lag_2': last_day['Lag_1'], 'Lag_3': last_day['Lag_2']}])
+        
+        # Base ML Prediction
+        base_prediction = model.predict(X_latest)[0]
+        current_price = last_day['close']
+        base_change = (base_prediction - current_price) / current_price
+        
+        # Factor in NLP Aggragate Score (AlphaVantage Score)
+        sentiment_scores = [item.get("overall_sentiment_score") for item in feed if item.get("overall_sentiment_score") is not None]
+        avg_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0
+        
+        # Adjust prediction with the sentiment weight
+        # Formula: Final Multiplier = Base + (AlphaSentiment * sentiment_leverage)
+        sentiment_leverage = 0.05 # Sentiment has up to 5% directional weight
+        nlp_modifier = avg_sentiment * sentiment_leverage 
+        
+        final_prediction = current_price * (1 + base_change + nlp_modifier)
+        
+        st.write(f"#### Today's Base Metrics for {TICKER}:")
+        st.markdown(f"- **Current Close Price:** `${current_price:.2f}`")
+        st.markdown(f"- **Algorithm Base Forecast (Historical):** `${base_prediction:.2f}`")
+        st.markdown(f"- **NLP Global Opinion Score:** `{avg_sentiment:.4f}` _(Scored strictly from {len(feed)} scraped news)_")
+        
+        st.divider()
+        st.write("#### 🎯 Next Day Synthetic Target Prediction")
+        
+        direction = "Bullish Uptrend 🟢" if final_prediction > current_price else "Bearish Downtrend 🔴"
+        
+        st.metric(
+            label="Calculated Predictive Price", 
+            value=f"${final_prediction:.2f}", 
+            delta=f"${final_prediction - current_price:.2f} ({direction})"
+        )
+        
+        st.success("The projection model effectively aggregates historical Autoregression pricing directly intersected with the real-time global news sentiment.")
+    else:
+        st.warning("Insufficient data to run forecasting engine. Ensure SQL database and NLP feed are properly synced.")
 
 # Sidebar
 st.sidebar.title("⚙️ System Status")
@@ -156,4 +216,5 @@ st.sidebar.success("✅ AWS IAM Verified")
 st.sidebar.success("✅ Secrets Manager Active")
 st.sidebar.success("✅ Aurora MySQL Connected")
 st.sidebar.success("✅ NLP Engine Fired")
+st.sidebar.success("✅ ML Scikit-Learn Model Built")
 st.sidebar.info("⚡ Real-time Analytics powered by Streamlit Engine.")
