@@ -179,9 +179,3 @@ Notebook 会按顺序完成：
 - Aurora 写入与读取
 - Spark 大文件读取与分析
 - 新闻 NLP 初步分析
-
-- NoSQL：DynamoDB
-- Big Data：PySpark
-- Python ETL 与分析：Jupyter Notebook
-
-下一步最值得继续增强的部分，是把新闻情绪结果与股价变化做更严格的时间对齐分析，并在最终 PPT 中明确说明数据质量、许可证、扩展性和成本权衡。
