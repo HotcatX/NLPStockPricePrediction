@@ -20,25 +20,25 @@
 
 这样做的原因是免费新闻 API 存在调用额度限制，而课程要求又需要展示大规模数据处理能力，因此项目将“真实数据接入能力”和“可扩展大数据处理能力”拆开验证。
 
-## 与课程要求的对应关系
+## 对应关系
 
-| 课程要求 | 本项目实现 |
+| 1 | 本项目实现 |
 | --- | --- |
 | 1 个 API | Alpha Vantage 股票行情与新闻 API |
 | 1 个 SQL 数据库 | Amazon Aurora MySQL |
 | 1 个 NoSQL 数据库 | Amazon DynamoDB |
 | 1 个大数据工具 | PySpark |
 | Python 端到端实现 | `Project_Analysis.ipynb` |
-| 数据集至少 1GB | 本地大文件 `massive_mock_dataset_500MB.csv`，当前实际体量约 1.5GB |
+| 数据集 | 本地大文件 `massive_mock_dataset_500MB.csv`，当前实际体量约 1.5GB |
 
 ## 当前项目结构
 
 - `Project_Analysis.ipynb`
-  当前正式提交版 Notebook。包含数据获取、ETL、数据库写入、Spark 大文件读取、新闻 NLP 分析、结果展示与 requirement check。
+  包含数据获取、ETL、数据库写入、Spark 大文件读取、新闻 NLP 分析、结果展示与 requirement check。
 - `create_nb.py`
   用于生成和维护 Notebook 内容的脚本。
 - `generate_big_data.py`
-  用于生成课程要求所需的大体量股票数据文件。
+  大体量股票数据文件。
 - `populate_bulk.py`
   用于批量写入或构造测试数据的辅助脚本。
 - `requirements.txt`
@@ -57,7 +57,7 @@
 
 - 本地大文件 `massive_mock_dataset_500MB.csv`
   - 当前实际大小已超过 1GB
-  - 用于满足课程中对大数据处理、Spark 读取、聚合与扩展性分析的要求
+  - Spark 读取、聚合与扩展性分析的要求
   - 数据字段覆盖 ticker、date、open、high、low、close、volume、headline、summary 等分析所需列
 
 ### 3. 降级与缓存策略
@@ -180,26 +180,6 @@ Notebook 会按顺序完成：
 - Spark 大文件读取与分析
 - 新闻 NLP 初步分析
 
-## 提交建议
-
-课程提交时建议包含以下内容：
-
-- `Project_Analysis.ipynb`
-- 最终演示 PPT
-- 本 README
-
-如果 GitHub 仓库不适合直接提交超大 CSV 文件，建议：
-
-- 在 README 中说明大文件生成方式
-- 保留 `generate_big_data.py`
-- 或将大文件放入 S3 / 云存储，仅在 Notebook 中读取路径
-
-## 结论
-
-当前项目已经形成一个完整的课程期末项目雏形，并且覆盖了课程要求中的关键技术栈：
-
-- API：Alpha Vantage
-- SQL：Aurora MySQL
 - NoSQL：DynamoDB
 - Big Data：PySpark
 - Python ETL 与分析：Jupyter Notebook
